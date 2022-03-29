@@ -58,6 +58,7 @@ class Meta(type):
          return mtl in self.materials
       return mtl in self.indices
 
+
 class All(metaclass=Meta):
    '''List of all materials'''
    materials = {Lava, Water, Grass, Scrub, Forest, Stone}

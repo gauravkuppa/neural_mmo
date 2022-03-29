@@ -312,6 +312,8 @@ class Resource:
    RESOURCE_HEALTH_RESTORE_FRACTION    = 0.1
    '''Fraction of health restored per tick when above half food+water'''
 
+   
+
 class Combat:
    '''Combat Game System'''
 
