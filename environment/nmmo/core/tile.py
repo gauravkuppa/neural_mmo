@@ -53,7 +53,7 @@ class Tile:
    @property
    def static(self):
       '''No updates needed'''
-      assert self.capacity <= self.mat.capacity
+      assert self.capacity <= self.mat.capacity, "capacity {} mat capacity {} mat {}".format(self.capacity, self.mat.capacity, self.mat)
       return self.capacity == self.mat.capacity
 
    def reset(self, mat, config):
@@ -95,3 +95,9 @@ class Tile:
       self.capacity -= 1
       return True
       return self.mat.dropTable.roll()
+
+   def deposit(self, x):
+      if not self.mat == material.Depo:
+         return False
+      self.capacity += x
+      return True

@@ -20,6 +20,7 @@ class Map:
       for r in range(sz):
          for c in range(sz):
             self.tiles[r, c] = core.Tile(config, realm, r, c)
+            
 
    @property
    def packet(self):
@@ -64,5 +65,12 @@ class Map:
 
    def harvest(self, r, c):
       '''Called by actions that harvest a resource tile'''
+      print("harvest resources")
       self.updateList.add(self.tiles[r, c])
       return self.tiles[r, c].harvest()
+
+   def deposit(self, r, c, x):
+      '''Called by actions that harvest a resource tile'''
+      print("deposit {} resources".format(x))
+      self.updateList.add(self.tiles[r, c])
+      return self.tiles[r, c].deposit(x)

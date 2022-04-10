@@ -75,7 +75,7 @@ class Player(entity.Entity):
       data['base']     = self.base.packet()
       data['resource'] = self.resources.packet()
       data['skills']   = self.skills.packet()
-
+      
       return data
   
    def update(self, realm, actions):
