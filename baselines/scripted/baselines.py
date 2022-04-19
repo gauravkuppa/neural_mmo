@@ -1,6 +1,6 @@
 from pdb import set_trace as T
 
-from scripted import behavior, move, attack, utils
+from . import behavior, move, attack, utils
 
 import nmmo
 from nmmo import scripting

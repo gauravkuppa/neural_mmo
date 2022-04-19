@@ -4,7 +4,7 @@ import os
 
 import nmmo
 
-from scripted import baselines
+from neural_mmo.baselines.scripted import baselines
 
 
 class RLlib:

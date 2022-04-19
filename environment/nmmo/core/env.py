@@ -258,8 +258,8 @@ class Env(ParallelEnv):
             Provided for conformity with PettingZoo
       '''
       assert self.has_reset, 'step before reset'
-      print(actions.keys())
-      print(len(self.realm.players.entities))
+      # print(actions.keys())
+      # print(len(self.realm.players.entities))
       #Preprocess actions for neural models
       for entID in list(actions.keys()):
          ent = self.realm.players[entID]

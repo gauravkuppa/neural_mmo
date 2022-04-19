@@ -163,21 +163,25 @@ class DepoSkill(Skill):
       food   = entity.resources.food
       water  = entity.resources.water
       config = self.config
-      print("in depo skill game system enabled {}".format(config.game_system_enabled('Deposit')))
+      #print("in depo skill game system enabled {}".format(config.game_system_enabled('Deposit')))
       
       if not config.game_system_enabled('Deposit'):
          return
-      
+
+
       half_food = food.val//2
       half_water = water.val//2
       r, c = entity.pos
-      for i in range(5):
-         print("###################################")
+
+
+      # Depositing food
+      if not realm.map.deposit(r, c,half_water,half_food):
+         return
+      # for i in range(5):
+      #    print("###################################")
       print("Depositing at r {} c {}".format(r, c))
-      for i in range(5):
-         print("###################################")
-      
-      realm.map.deposit(r, c, half_food + half_water)
+      # for i in range(5):
+      #    print("###################################")
       food.decrement(half_food)
       water.decrement(half_water)
 

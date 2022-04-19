@@ -7,7 +7,7 @@ from queue import PriorityQueue, Queue
 import nmmo
 from nmmo.lib import material
 
-from scripted import utils
+from . import utils
 
 def adjacentPos(pos):
    r, c = pos

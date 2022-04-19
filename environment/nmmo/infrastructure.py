@@ -242,3 +242,4 @@ class Dataframe:
       stim['Tile']         = self.data['Tile'].get(ent)
 
       return stim
+

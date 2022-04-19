@@ -3,7 +3,7 @@ import numpy as np
 
 import nmmo
 
-from scripted import utils
+from . import utils
 
 def closestTarget(config, ob):
    shortestDist = np.inf

@@ -5,7 +5,7 @@ from pdb import set_trace as T
 import nmmo
 
 # Scripted models included with the baselines repository
-from scripted import baselines
+from neural_mmo.baselines.scripted  import baselines
 
 
 def simulate(env, config, render=False, horizon=float('inf')):

@@ -1,0 +1,16 @@
+Failure # 1 (occurred at 2022-04-18_16-45-12)
+Traceback (most recent call last):
+  File "/home/legionnaire/anaconda3/envs/nmmo-torch3.9/lib/python3.9/site-packages/ray/tune/ray_trial_executor.py", line 549, in start_trial
+    return self._start_trial(trial)
+  File "/home/legionnaire/anaconda3/envs/nmmo-torch3.9/lib/python3.9/site-packages/ray/tune/ray_trial_executor.py", line 452, in _start_trial
+    self.restore(trial)
+  File "/home/legionnaire/anaconda3/envs/nmmo-torch3.9/lib/python3.9/site-packages/ray/tune/ray_trial_executor.py", line 856, in restore
+    obj = TrainableUtil.checkpoint_to_object(value)
+  File "/home/legionnaire/anaconda3/envs/nmmo-torch3.9/lib/python3.9/site-packages/ray/tune/utils/trainable.py", line 86, in checkpoint_to_object
+    data_dict = TrainableUtil.pickle_checkpoint(checkpoint_path)
+  File "/home/legionnaire/anaconda3/envs/nmmo-torch3.9/lib/python3.9/site-packages/ray/tune/utils/trainable.py", line 67, in pickle_checkpoint
+    checkpoint_dir = TrainableUtil.find_checkpoint_dir(checkpoint_path)
+  File "/home/legionnaire/anaconda3/envs/nmmo-torch3.9/lib/python3.9/site-packages/ray/tune/utils/trainable.py", line 101, in find_checkpoint_dir
+    raise FileNotFoundError("Path does not exist", checkpoint_path)
+FileNotFoundError: [Errno Path does not exist] /media/legionnaire/University/Penn/Research/NMMO/neural_mmo/ESE650/experiments/Trainer/ForageConfigDebug_Baseline/checkpoint_001000/checkpoint-1000
+

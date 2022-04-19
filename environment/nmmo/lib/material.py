@@ -50,7 +50,8 @@ class Depo(Material):
 
    def __init__(self, config):
       if config.game_system_enabled('Deposit'):
-         self.capacity = 0
+         self.water_capacity = 0
+         self.food_capacity = 0
 
 class Meta(type):
    def __init__(self, name, bases, dict):

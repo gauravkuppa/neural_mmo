@@ -8,7 +8,7 @@ from torch import nn
 
 import nmmo
 
-from neural import subnets
+from . import subnets
 
 class MixedEmbedding(nn.Module):
    def __init__(self, continuous, discrete, config):

@@ -2,8 +2,8 @@ from pdb import set_trace as T
 
 import nmmo
 
-from config import bases, scale
-import tasks
+from . import bases, scale
+from neural_mmo.baselines import tasks
 
 
 class Medium(scale.Baseline, bases.Medium, nmmo.config.AllGameSystems):

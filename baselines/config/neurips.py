@@ -3,8 +3,8 @@ import os
 
 import nmmo
 
-from config import bases, scale
-import tasks
+from . import bases, scale
+import neural_mmo.baselines.tasks as tasks
 
 
 # Legacy naming -- medium config intended

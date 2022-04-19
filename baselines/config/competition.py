@@ -4,9 +4,9 @@ from pdb import set_trace as T
 
 import nmmo
 
-import tasks
-from config import bases, scale
-from scripted import baselines
+import neural_mmo.baselines.tasks as tasks
+from . import bases, scale
+from neural_mmo.baselines.scripted import baselines
 
 
 class CompetitionRound1(scale.Baseline, bases.Medium, nmmo.config.AllGameSystems):

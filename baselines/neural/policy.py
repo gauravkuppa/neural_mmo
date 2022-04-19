@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.nn.utils import rnn
 
-from neural import io, subnets
+from . import io, subnets
 
 class Base(nn.Module):
    def __init__(self, config):
