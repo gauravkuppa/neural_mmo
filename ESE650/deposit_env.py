@@ -114,6 +114,7 @@ class ForageEnv(nmmo.Env):
     def reset(self, idx=None, step=True):
         super(ForageEnv, self).reset(idx,step=False)
         self.SPAWN_DEPO_PLAYERS()
+        self.num_steps = 0
         self.init_water_capacity = self.realm.map.depoTile.water_capacity
         self.init_food_capacity = self.realm.map.depoTile.food_capacity
         if step:
@@ -172,7 +173,7 @@ class ForageEnv(nmmo.Env):
     # Sharing Resources amongst agents in the neighbourhood
     def step(self,actions):
         obs, rewards, dones, infos = super(ForageEnv, self).step(actions)
-
+        self.num_steps+=1
         if self.config.RESOURCE_SHARING:
             group_dict = {}
             for entID, ent in self.realm.players.items():
@@ -256,4 +257,4 @@ def network_tester(env, config, render=False, horizon=float('inf')):
 
 if __name__ == '__main__':
     #simulate(nmmo.Env, Config, render=True)
-    network_tester(ForageEnv,ForageConfig,render=True)
+    network_tester(ForageEnv,ForageConfigDebug,render=True)

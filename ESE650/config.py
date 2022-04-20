@@ -10,7 +10,7 @@ class Debug:
    '''
 
    NUM_GPUS                = 0
-   NUM_WORKERS             = 2
+   NUM_WORKERS             = 1
    EVALUATION_NUM_WORKERS  = 1
    EVALUATION_NUM_EPISODES = 1
 
@@ -95,8 +95,8 @@ class RLlib:
    SCRIPTED                = None
    N_AGENT_OBS             = 100
    NPOLICIES               = 1
-   HIDDEN                  = 64
-   EMBED                   = 64
+   HIDDEN                  = 32
+   EMBED                   = 32
    DEVICE                  = 'cuda'
 
    #Reward
@@ -104,7 +104,7 @@ class RLlib:
    TEAM_SPIRIT             = 0.0
 
    #SGD
-   SGD_MINIBATCH_SIZE = 128
+   SGD_MINIBATCH_SIZE = 64
 
 class RESDEPOSIT:
     FOOD = 10
@@ -118,12 +118,12 @@ class Small(RLlib, nmmo.config.Small):
     64 x 64 maps (excluding the border), and 128 timestep horizons'''
 
     # Memory/Batch Scale
-    ROLLOUT_FRAGMENT_LENGTH = 128
-    SGD_MINIBATCH_SIZE = 128
+    ROLLOUT_FRAGMENT_LENGTH = 64
+    SGD_MINIBATCH_SIZE = 64
 
     # Horizon
-    TRAIN_HORIZON = 128
-    EVALUATION_HORIZON = 128
+    TRAIN_HORIZON = 64
+    EVALUATION_HORIZON = 64
 
 
 class ForageConfigDebug(Small, ForagingGameSystems,RESDEPOSIT,Debug):
@@ -196,8 +196,8 @@ class ForageConfigTrain(nmmo.config.Small, ForagingGameSystems,RLlib,RESDEPOSIT,
 
     # Map Generation
     TERRAIN_LAVA = 0.0
-    TERRAIN_WATER = 0.35
-    TERRAIN_GRASS = 0.55
+    TERRAIN_WATER = 0.20
+    TERRAIN_GRASS = 0.70
     TERRAIN_FOREST = 0.90
     TERRAIN_BORDER = 10
 
