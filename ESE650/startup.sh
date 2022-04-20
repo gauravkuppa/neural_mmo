@@ -1,7 +1,7 @@
 source ~/.bashrc
 
 #installing conda
-conda create -n torch python=3.8
+conda create -n torch python=3.9
 source /miniconda/etc/profile.d/conda.sh
 conda activate torch
 
