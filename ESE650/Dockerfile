@@ -57,7 +57,7 @@ WORKDIR /home
 COPY scripts/requirements.txt ./
 COPY scripts/rllib_requirements.txt ./
 COPY scripts/setup.sh ./
-
+COPY startup.sh ./
 # Run startup.sh in docker to set it up
 #CMD ["bash startup.sh","bash"]
 
