@@ -44,15 +44,6 @@ class Stone(Material):
    tex   = 'stone'
    index = 5
 
-class Depo(Material):
-   tex = 'depo'
-   index = 6
-
-   def __init__(self, config):
-      if config.game_system_enabled('Deposit'):
-         self.water_capacity = 0
-         self.food_capacity = 0
-
 class Meta(type):
    def __init__(self, name, bases, dict):
       self.indices = {mtl.index for mtl in self.materials}
@@ -67,15 +58,14 @@ class Meta(type):
          return mtl in self.materials
       return mtl in self.indices
 
-
 class All(metaclass=Meta):
    '''List of all materials'''
-   materials = {Lava, Water, Grass, Scrub, Forest, Stone, Depo}
+   materials = {Lava, Water, Grass, Scrub, Forest, Stone}
 
 class Impassible(metaclass=Meta):
    '''Materials that agents cannot walk through'''
    materials = {Lava, Stone}
 
 class Habitable(metaclass=Meta):
-   '''Materials that agents can walk on'''
-   materials = {Grass, Scrub, Forest, Depo}
+   '''Materials that agents cannot walk on'''
+   materials = {Grass, Scrub, Forest}

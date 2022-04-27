@@ -13,6 +13,7 @@ class Map:
    '''
    def __init__(self, config, realm):
       self.config = config
+      self._repr  = None
 
       sz          = config.TERRAIN_SIZE
       self.tiles  = np.zeros((sz, sz), dtype=object)
@@ -20,9 +21,6 @@ class Map:
       for r in range(sz):
          for c in range(sz):
             self.tiles[r, c] = core.Tile(config, realm, r, c)
-
-      if config.game_system_enabled('Deposit'):
-         self.depoTile = None
 
    @property
    def packet(self):
@@ -35,7 +33,10 @@ class Map:
    @property
    def repr(self):
       '''Flat matrix of tile material indices'''
-      return [[t.mat.index for t in row] for row in self.tiles]
+      if not self._repr:
+          self._repr = [[t.mat.index for t in row] for row in self.tiles]
+
+      return self._repr
 
    def reset(self, realm, idx):
       '''Reuse the current tile objects to load a new map'''
@@ -58,9 +59,6 @@ class Map:
             tile = self.tiles[r, c]
             tile.reset(mat, config)
 
-            if config.game_system_enabled('Deposit') and tile.depo:
-               self.depoTile = tile
-
    def step(self):
       '''Evaluate updatable tiles'''
       for e in self.updateList.copy():
@@ -70,12 +68,5 @@ class Map:
 
    def harvest(self, r, c):
       '''Called by actions that harvest a resource tile'''
-      #print("harvest resources")
       self.updateList.add(self.tiles[r, c])
       return self.tiles[r, c].harvest()
-
-   def deposit(self, r, c, x_w,x_f):
-      '''Called by actions that harvest a resource tile'''
-      #print("deposit {} {} resources".format(x_w,x_f))
-      self.updateList.add(self.tiles[r, c])
-      return self.tiles[r, c].deposit(x_w,x_f)

@@ -162,11 +162,10 @@ class PlayerManager(EntityGroup):
             break
 
          r, c   = self.config.SPAWN()
-         if r is not None and c is not None:
-            if self.realm.map.tiles[r, c].occupied:
-               continue
+         if self.realm.map.tiles[r, c].occupied:
+            continue
 
-            self.spawnIndividual(r, c)
+         self.spawnIndividual(r, c)
 
       while len(self.entities) == 0:
          self.spawn()
@@ -201,6 +200,8 @@ class Realm:
    def packet(self):
       '''Client packet'''
       return {'environment': self.map.repr,
+              'border': self.config.TERRAIN_BORDER,
+              'size': self.config.TERRAIN_SIZE,
               'resource': self.map.packet,
               'player': self.players.packet,
               'npc': self.npcs.packet}

@@ -51,13 +51,9 @@ class Tile:
       return self.mat == material.Lava
 
    @property
-   def depo(self):
-      return self.mat == material.Depo
-
-   @property
    def static(self):
       '''No updates needed'''
-      assert self.capacity <= self.mat.capacity, "capacity {} mat capacity {} mat {}".format(self.capacity, self.mat.capacity, self.mat)
+      assert self.capacity <= self.mat.capacity
       return self.capacity == self.mat.capacity
 
    def reset(self, mat, config):
@@ -70,10 +66,6 @@ class Tile:
 
       self.nEnts.update(0)
       self.index.update(self.state.index)
-
-      if self.depo:
-         self.water_capacity = self.mat.water_capacity
-         self.food_capacity = self.mat.food_capacity
  
    def addEnt(self, ent):
       assert ent.entID not in self.ents
@@ -103,10 +95,3 @@ class Tile:
       self.capacity -= 1
       return True
       return self.mat.dropTable.roll()
-
-   def deposit(self, x_w,x_f):
-      if not self.depo:
-         return False
-      self.water_capacity += x_w
-      self.food_capacity += x_f
-      return True
