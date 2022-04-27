@@ -7,6 +7,8 @@ logging, and visualization tools.
 TODO: Still need to add per pop / diff task demo and Tiled support
 
 Associated docs and tutorials are hosted on neuralmmo.github.io.'''
+import sys
+sys.path.append(1, "../environment")
 from pdb import set_trace as T
 
 from fire import Fire

@@ -1,0 +1,12 @@
+[submodule "baseline"]
+	path = baseline
+	url = https://github.com/NeuralMMO/baselines.git
+[submodule "baselines"]
+	path = baselines
+	url = https://github.com/NeuralMMO/baselines.git
+[submodule "environment"]
+	path = environment
+	url = https://github.com/NeuralMMO/environment.git
+[submodule "client"]
+	path = client
+	url = https://github.com/NeuralMMO/client.git
