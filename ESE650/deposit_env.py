@@ -224,8 +224,8 @@ def network_tester(env, config, render=False, horizon=float('inf')):
 
     t = 0
     while True:
-        if render:
-            env.render()
+        # if render:
+        #     env.render()
 
         # Scripted API computes actions
         obs, rewards, dones, infos = env.step(actions={})

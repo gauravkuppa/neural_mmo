@@ -1,9 +1,7 @@
 '''Infrastructure layer for representing agent observations
-
 Maintains a synchronized + serialized representation of agent observations in
 flat tensors. This allows for fast observation processing as a set of tensor
 slices instead of a lengthy traversal over hundreds of game properties.
-
 Synchronization bugs are notoriously difficult to track down: make sure
 to follow the correct instantiation protocol, e.g. as used for defining
 agent/tile observations, when adding new types observations to the code'''
@@ -78,7 +76,7 @@ class ContinuousTable:
       return np.zeros((nRows, nCols), dtype=self.dtype)
 
    def update(self, row, attr, val):
-      col = self.cols[attr] 
+      col = self.cols[attr]
       self.data[row, col] = val
 
    def expand(self, cur, nxt):
@@ -117,7 +115,7 @@ class DiscreteTable(ContinuousTable):
       self.nCols         += 1
 
    def update(self, row, attr, val):
-      col = self.cols[attr] 
+      col = self.cols[attr]
       self.data[row, col] = val + self.discrete[attr]
 
 class Grid:
@@ -128,11 +126,11 @@ class Grid:
    def zero(self, pos):
       r, c            = pos
       self.data[r, c] = 0
-    
+
    def set(self, pos, val):
       r, c            = pos
       self.data[r, c] = val
- 
+
    def move(self, pos, nxt, row):
       self.zero(pos)
       self.set(nxt, row)
@@ -140,10 +138,9 @@ class Grid:
    def window(self, rStart, rEnd, cStart, cEnd):
       crop = self.data[rStart:rEnd, cStart:cEnd].ravel()
       return list(filter(lambda x: x != 0, crop))
-      
+
 class GridTables:
    '''Combines a Grid + Index + Continuous and Discrete tables
-
    Together, these data structures provide a robust and efficient
    flat tensor representation of an entire class of observations,
    such as agents or tiles'''
@@ -234,12 +231,12 @@ class Dataframe:
 
    def get(self, ent):
       stim = {}
-     
+
       stim['Entity'], ents = self.data['Entity'].get(ent, entity=True)
       stim['Entity']['N']  = np.array([len(ents)], dtype=np.int32)
 
       ent.targets          = ents
       stim['Tile']         = self.data['Tile'].get(ent)
+      stim['Tile']['N']    = np.array([int(self.config.WINDOW**2)], dtype=np.int32)
 
       return stim
-

@@ -13,4 +13,6 @@ numpy==1.21.1
 trueskill==0.4.5
 wandb
 openskill
+supersuit==3.3.0
 pettingzoo==1.13.1
+stable_baselines3

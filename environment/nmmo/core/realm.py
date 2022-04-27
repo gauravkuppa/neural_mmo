@@ -197,13 +197,15 @@ class Realm:
       self.players.reset()
       self.npcs.reset()
       self.tick = 0
- 
+
    def packet(self):
-      '''Client packet'''
-      return {'environment': self.map.repr,
-              'resource': self.map.packet,
-              'player': self.players.packet,
-              'npc': self.npcs.packet}
+       '''Client packet'''
+       return {'environment': self.map.repr,
+               'border': self.config.TERRAIN_BORDER,
+               'size': self.config.TERRAIN_SIZE,
+               'resource': self.map.packet,
+               'player': self.players.packet,
+               'npc': self.npcs.packet}
 
    @property
    def population(self):
