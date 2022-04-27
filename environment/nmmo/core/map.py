@@ -21,6 +21,9 @@ class Map:
       for r in range(sz):
          for c in range(sz):
             self.tiles[r, c] = core.Tile(config, realm, r, c)
+            
+      if config.game_system_enabled('Deposit'):
+         self.depoTile = None
 
    @property
    def packet(self):
