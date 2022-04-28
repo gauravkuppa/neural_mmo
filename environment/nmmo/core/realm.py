@@ -162,10 +162,12 @@ class PlayerManager(EntityGroup):
             break
 
          r, c   = self.config.SPAWN()
-         if self.realm.map.tiles[r, c].occupied:
-            continue
 
-         self.spawnIndividual(r, c)
+         if r is not None and c is not None:
+            if self.realm.map.tiles[r, c].occupied:
+               continue
+
+            self.spawnIndividual(r, c)
 
       while len(self.entities) == 0:
          self.spawn()

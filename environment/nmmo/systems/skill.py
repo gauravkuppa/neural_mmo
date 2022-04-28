@@ -61,6 +61,7 @@ class Harvesting(SkillGroup):
 
       self.fishing      = Fishing(self)
       self.hunting      = Hunting(self)
+      self.depo         = DepoSkill(self)
 
 class Combat(SkillGroup):
    def __init__(self, realm):
@@ -71,6 +72,7 @@ class Combat(SkillGroup):
       self.melee        = Melee(self)
       self.range        = Range(self)
       self.mage         = Mage(self)
+      self.depo         = DepoSkill(self)
 
    def packet(self):
       data          = super().packet() 
@@ -146,6 +148,37 @@ class Range(CombatSkill): pass
 class Mage(CombatSkill): pass
 class Defense(CombatSkill): pass
 
+class DepoSkill(Skill):
+   def __init__(self, skillGroup):
+      super().__init__(skillGroup)
+      self.setExpByLevel(self.config.BASE_HEALTH)
+
+   def update(self, realm, entity):
+      health = entity.resources.health
+      food   = entity.resources.food
+      water  = entity.resources.water
+      config = self.config
+      #print("in depo skill game system enabled {}".format(config.game_system_enabled('Deposit')))
+
+      if not config.game_system_enabled('Deposit'):
+         return
+
+
+      half_food = food.val//2
+      half_water = water.val//2
+      r, c = entity.pos
+
+
+      # Depositing food
+      if not realm.map.deposit(r, c,half_water,half_food):
+         return
+      # for i in range(5):
+      #    print("###################################")
+      print("Depositing at r {} c {}".format(r, c))
+      # for i in range(5):
+      #    print("###################################")
+      food.decrement(half_food)
+      water.decrement(half_water)
 class Fishing(Skill):
    def __init__(self, skillGroup):
       super().__init__(skillGroup)
