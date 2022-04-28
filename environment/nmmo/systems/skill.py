@@ -135,11 +135,6 @@ class Constitution(CombatSkill):
       if foodThresh and waterThresh:
          restore = config.RESOURCE_HEALTH_RESTORE_FRACTION
          restore = np.floor(restore * self.level)
-         """for i in range(5):
-            print("###################################")
-         print("Taking resources")
-         for i in range(5):
-            print("###################################")"""
          health.increment(restore)
 
       if food.empty:
@@ -157,14 +152,14 @@ class DepoSkill(Skill):
    def __init__(self, skillGroup):
       super().__init__(skillGroup)
       self.setExpByLevel(self.config.BASE_HEALTH)
-   
+
    def update(self, realm, entity):
       health = entity.resources.health
       food   = entity.resources.food
       water  = entity.resources.water
       config = self.config
       #print("in depo skill game system enabled {}".format(config.game_system_enabled('Deposit')))
-      
+
       if not config.game_system_enabled('Deposit'):
          return
 
@@ -184,7 +179,6 @@ class DepoSkill(Skill):
       #    print("###################################")
       food.decrement(half_food)
       water.decrement(half_water)
-
 class Fishing(Skill):
    def __init__(self, skillGroup):
       super().__init__(skillGroup)

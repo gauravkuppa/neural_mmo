@@ -57,7 +57,7 @@ class Tile:
    @property
    def static(self):
       '''No updates needed'''
-      assert self.capacity <= self.mat.capacity, "capacity {} mat capacity {} mat {}".format(self.capacity, self.mat.capacity, self.mat)
+      assert self.capacity <= self.mat.capacity
       return self.capacity == self.mat.capacity
 
    def reset(self, mat, config):
@@ -109,4 +109,4 @@ class Tile:
          return False
       self.water_capacity += x_w
       self.food_capacity += x_f
-      return True
+      return True 

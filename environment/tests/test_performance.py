@@ -71,12 +71,12 @@ def test_fps_small_all_100_pop(benchmark):
     benchmark_config(benchmark, Small, 100, AllGameSystems)
 
 # Reuse large maps since we aren't benchmarking the reset function
-#def test_large_env_creation(benchmark):
-#    benchmark(lambda: nmmo.Env(Large()))
+def test_large_env_creation(benchmark):
+    benchmark(lambda: nmmo.Env(Large()))
 
-#def test_large_env_reset(benchmark):
-#    env = nmmo.Env(Large())
-#    benchmark(lambda: env.reset(idx=1))
+def test_large_env_reset(benchmark):
+    env = nmmo.Env(Large())
+    benchmark(lambda: env.reset(idx=1))
 
 LargeMapsRCP = nmmo.Env(create_config(Large, Resource, Combat, Progression))
 LargeMapsAll = nmmo.Env(create_config(Large, AllGameSystems))

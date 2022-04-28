@@ -26,7 +26,6 @@ class Player(entity.Entity):
       self.skills = Skills(self)
 
       self.diary  = None
-
       tasks = realm.config.TASKS
       if tasks:
           self.diary = Diary(tasks)
@@ -75,7 +74,7 @@ class Player(entity.Entity):
       data['base']     = self.base.packet()
       data['resource'] = self.resources.packet()
       data['skills']   = self.skills.packet()
-      
+
       return data
   
    def update(self, realm, actions):

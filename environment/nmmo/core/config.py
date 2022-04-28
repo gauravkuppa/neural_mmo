@@ -76,6 +76,19 @@ class Template(metaclass=utils.StaticIterable):
       for k, v in self.data.items():
          print('   {:{}s}: {}'.format(k, keyLen, v))
 
+   def items(self):
+       return self.data.items()
+
+   def __iter__(self):
+       for k in self.data:
+           yield k
+
+   def keys(self):
+       return self.data.keys()
+
+   def values(self):
+       return self.data.values()
+
 class Config(Template):
    '''An environment configuration object
 
@@ -105,8 +118,29 @@ class Config(Template):
    RENDER                 = False
    '''Flag used by render mode'''
 
+   SAVE_REPLAY            = False
+   '''Flag used to save replays'''
+
    def game_system_enabled(self, name) -> bool:
       return hasattr(self, name)
+
+   def population_mapping_fn(self, idx) -> int:
+      return idx % self.NPOP
+
+   ############################################################################
+   ### Emulation Parameters
+ 
+   EMULATE_FLAT_OBS       = False
+   '''Emulate a flat observation space'''
+
+   EMULATE_FLAT_ATN       = False
+   '''Emulate a flat action space'''
+
+   EMULATE_CONST_NENT     = False
+   '''Emulate a constant number of agents'''
+
+   EMULATE_CONST_HORIZON  = False
+   '''Emulate a constant HORIZON simulations steps'''
 
    ############################################################################
    ### Population Parameters                                                   
@@ -135,8 +169,10 @@ class Config(Template):
    NENT                    = None
    '''Maximum number of agents spawnable in the environment'''
 
-   NPOP                    = 1
-   '''Number of distinct populations spawnable in the environment'''
+   @property
+   def NPOP(self):
+       '''Number of distinct populations spawnable in the environment'''
+       return len(self.AGENTS)
 
    N_AGENT_OBS             = 100
    '''Number of distinct agent observations'''
@@ -150,6 +186,7 @@ class Config(Template):
    def WINDOW(self):
       '''Size of the square tile crop visible to an agent'''
       return 2*self.NSTIM + 1
+
 
    ############################################################################
    ### Agent Parameters                                                   
@@ -185,7 +222,7 @@ class Config(Template):
           r, c = c, r 
       return (r, c)
 
-   def SPAWN_CONCURRENT(self):
+   def SPAWN_CONCURRENT(self, shuffle=False):
       left   = self.TERRAIN_BORDER
       right  = self.TERRAIN_CENTER + self.TERRAIN_BORDER
       rrange = np.arange(left+2, right, 4).tolist()
@@ -202,12 +239,18 @@ class Config(Template):
       s4     = list(zip(highs, rrange))
 
       ret = s1 + s2 + s3 + s4
+      if shuffle:
+        assert not len(ret) % self.NPOP
+        ret = np.array_split(ret, self.NPOP)
+        np.random.shuffle(ret)
+        ret = np.concatenate(ret, axis=0).tolist()
       n = int(self.NENT * len(self.AGENTS))
       return ret[:n]
-
+    
    @property
    def SPAWN(self):
       return self.SPAWN_CONTINUOUS
+
 
    ############################################################################
    ### Terrain Generation Parameters
@@ -311,7 +354,6 @@ class Resource:
 
    RESOURCE_HEALTH_RESTORE_FRACTION    = 0.1
    '''Fraction of health restored per tick when above half food+water'''
-
 class Deposit:
    def Deposit(self):
       return True   
@@ -415,6 +457,8 @@ class Small(Config):
 
    NPC_LEVEL_MAX           = 10
    NPC_LEVEL_SPREAD        = 1
+   
+   HORIZON                 = 128
 
 class Medium(Config):
    '''A medium config suitable for most academic-scale research'''
@@ -431,6 +475,9 @@ class Medium(Config):
    NPC_LEVEL_MAX           = 30
    NPC_LEVEL_SPREAD        = 5
 
+   HORIZON                 = 1024
+
+
 class Large(Config):
    '''A large config suitable for large-scale research or fast models'''
 
@@ -445,5 +492,7 @@ class Large(Config):
 
    NPC_LEVEL_MAX           = 99
    NPC_LEVEL_SPREAD        = 10
+
+   HORIZON                 = 8192
 
 class Default(Medium, AllGameSystems): pass
