@@ -2,6 +2,7 @@ from pdb import set_trace as T
 import numpy as np
 
 import functools
+from collections import defaultdict
 
 import gym
 from pettingzoo import ParallelEnv

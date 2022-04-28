@@ -5,7 +5,6 @@ import os
 import nmmo
 from nmmo.lib import utils
 
-
 class SequentialLoader:
     '''config.AGENT_LOADER that spreads out agent populations'''
 
@@ -48,37 +47,50 @@ class TeamLoader:
 
 
 class Template(metaclass=utils.StaticIterable):
-    def __init__(self):
-        self.data = {}
-        cls = type(self)
+   def __init__(self):
+      self.data = {}
+      cls       = type(self)
 
-        # Set defaults from static properties
-        for k, v in cls:
-            self.set(k, v)
+      #Set defaults from static properties
+      for k, v in cls:
+         self.set(k, v)
 
-    def override(self, **kwargs):
-        for k, v in kwargs.items():
-            err = 'CLI argument: {} is not a Config property'.format(k)
-            assert hasattr(self, k), err
-            self.set(k, v)
+   def override(self, **kwargs):
+      for k, v in kwargs.items():
+         err = 'CLI argument: {} is not a Config property'.format(k)
+         assert hasattr(self, k), err
+         self.set(k, v)
 
-    def set(self, k, v):
-        if type(v) is not property:
-            try:
-                setattr(self, k, v)
-            except:
-                print('Cannot set attribute: {} to {}'.format(k, v))
-                quit()
-        self.data[k] = v
+   def set(self, k, v):
+      if type(v) is not property:
+         try:
+            setattr(self, k, v)
+         except:
+            print('Cannot set attribute: {} to {}'.format(k, v))
+            quit()
+      self.data[k] = v
 
-    def print(self):
-        keyLen = 0
-        for k in self.data.keys():
-            keyLen = max(keyLen, len(k))
+   def print(self):
+      keyLen = 0
+      for k in self.data.keys():
+         keyLen = max(keyLen, len(k))
 
-        print('Configuration')
-        for k, v in self.data.items():
-            print('   {:{}s}: {}'.format(k, keyLen, v))
+      print('Configuration')
+      for k, v in self.data.items():
+         print('   {:{}s}: {}'.format(k, keyLen, v))
+
+   def items(self):
+       return self.data.items()
+
+   def __iter__(self):
+       for k in self.data:
+           yield k
+
+   def keys(self):
+       return self.data.keys()
+
+   def values(self):
+       return self.data.values()
 
 
 class Config(Template):
@@ -417,7 +429,6 @@ class NPC(Combat):
     '''Level range for NPC spawns'''
 
 class Deposit:
-
     @property
     def Deposit(self):
         return True
