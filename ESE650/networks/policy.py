@@ -51,8 +51,9 @@ class Simple(nn.Module):
         self.conv = nn.Conv2d(h, h, 3)
         self.pool = nn.MaxPool2d(2)
         self.fc = nn.Linear(h * 6 * 6, h)
+        self.fc2 = nn.Linear(h,h)
 
-        self.proj = nn.Linear(2 * h, h)
+        self.proj = nn.Linear(3 * h, h)
         self.attend = subnets.SelfAttention(config.EMBED, h)
 
     def forward(self, obs, state=None, lens=None):
@@ -68,7 +69,7 @@ class Simple(nn.Module):
         tiles = obs['Tile']
         self.attn = torch.norm(tiles, p=2, dim=-1)
 
-        w = self.config.PLAYER_VISION_DIAMETER
+        w = self.config.WINDOW
         batch = tiles.size(0)
         hidden = tiles.size(2)
         # Dims correct?
@@ -78,7 +79,10 @@ class Simple(nn.Module):
         tiles = tiles.reshape(batch, -1)
         tiles = self.fc(tiles)
 
-        hidden = torch.cat((agents, tiles), dim=-1)
+        depotile = obs['DepoTile']
+        depotile = depotile.reshape(batch, -1)
+        depotile = self.fc2(depotile)
+        hidden = torch.cat((agents, tiles,depotile), dim=-1)
         hidden = self.proj(hidden)
         return hidden, state
 

@@ -198,6 +198,7 @@ class Realm:
       self.npcs.reset()
       self.tick = 0
 
+
    def packet(self):
        '''Client packet'''
        return {'environment': self.map.repr,
@@ -248,6 +249,7 @@ class Realm:
 
       dead = self.players.cull()
       self.npcs.cull()
+
 
       #Update map
       self.map.step()

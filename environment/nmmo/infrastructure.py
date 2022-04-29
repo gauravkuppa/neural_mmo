@@ -155,7 +155,16 @@ class GridTables:
       self.radius     = config.NSTIM
       self.pad        = pad
 
-   def get(self, ent, radius=None, entity=False):
+   def get(self, ent, radius=None, entity=False, depo = False):
+
+      if depo:
+         rows = self.grid.window(
+            0, self.grid.data.shape[0],
+            0, self.grid.data.shape[1])
+         values = {'Continuous': self.continuous.get(rows),
+                   'Discrete': self.discrete.get(rows)}
+         return values
+
       if radius is None:
          radius = self.radius
 
@@ -239,4 +248,6 @@ class Dataframe:
       stim['Tile']         = self.data['Tile'].get(ent)
       stim['Tile']['N']    = np.array([int(self.config.WINDOW**2)], dtype=np.int32)
 
+      stim['DepoTile']         = self.data['DepoTile'].get(ent,depo=True)
+      stim['DepoTile']['N']    = np.array([int(1.0)], dtype=np.int32)
       return stim

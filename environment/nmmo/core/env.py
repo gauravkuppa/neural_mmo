@@ -176,10 +176,32 @@ class Env(ParallelEnv):
               observation['Tile']['N'] = gym.spaces.Box(
                   low=0, high=self.config.WINDOW ** 2,
                   shape=(1,), dtype=DataType.DISCRETE)
+          if name == 'DepoTile':
+              observation['DepoTile']['N'] = gym.spaces.Box(
+                  low=0, high=1,
+                  shape=(1,), dtype=DataType.DISCRETE)
 
           observation[name] = gym.spaces.Dict(observation[name])
 
+
+      # if self.config.Deposit:
+      #     observation['DepoTile'] = {
+      #         'Continuous': gym.spaces.Box(
+      #             low=-2 ** 20, high=2 ** 20,
+      #             shape=(1, 1),
+      #             dtype=DataType.CONTINUOUS),
+      #         'Discrete': gym.spaces.Box(
+      #             low=0, high=4096,
+      #             shape=(1, 2),
+      #             dtype=DataType.DISCRETE),
+      #         'N': gym.spaces.Box(
+      #             low=0, high=1,
+      #             shape=(1,),
+      #             dtype=DataType.DISCRETE)
+      #     }
+      #     observation['DepoTile'] = gym.spaces.Dict(observation['DepoTile'])
       observation = gym.spaces.Dict(observation)
+
 
       if not self.dummy_ob:
           self.dummy_ob = observation.sample()

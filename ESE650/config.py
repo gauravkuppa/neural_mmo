@@ -11,6 +11,7 @@ class Debug:
 
    NUM_GPUS                = 0
    NUM_WORKERS             = 1
+   NUM_CPUS                = 8
    EVALUATION_NUM_WORKERS  = 1
    EVALUATION_NUM_EPISODES = 1
 
@@ -22,6 +23,7 @@ class Train:
 
    NUM_GPUS                = 1
    NUM_WORKERS             = 36
+   NUM_CPUS                = 32
    EVALUATION_NUM_WORKERS  = 2
    EVALUATION_NUM_EPISODES = 2
 
@@ -107,8 +109,12 @@ class RLlib:
    SGD_MINIBATCH_SIZE = 64
 
 class RESDEPOSIT:
-    FOOD = 10
-    WATER = 10
+    FOOD_DEP_TEAM = .05
+    WATER_DEP_TEAM = .05
+    FOOD_DEP_SELF = 0.005
+    WATER_DEP_SELF = 0.005
+    NMMO_MULT = 20
+
 
 
 class Small(RLlib, nmmo.config.Small):
@@ -125,8 +131,7 @@ class Small(RLlib, nmmo.config.Small):
     TRAIN_HORIZON = 64
     EVALUATION_HORIZON = 64
 
-
-class ForageConfigDebug(Small, ForagingGameSystems,RESDEPOSIT,Debug):
+class ForageConfigBase(Small, ForagingGameSystems,RESDEPOSIT):
     '''Config objects subclass a nmmo.config.{Small, Medium, Large} template
 
     Can also specify config game systems to enable various features'''
@@ -136,17 +141,17 @@ class ForageConfigDebug(Small, ForagingGameSystems,RESDEPOSIT,Debug):
     # Forage: explicitly searches for food and water
     # Combat: forages and actively fights other agents
     AGENTS    = [nmmo.Agent]
-    EVAL_AGENTS = 4*[baselines.Meander,baselines.Forage]
 
     #Set a unique path for demo maps
     PATH_MAPS = 'maps/demos'
+
+    #7 DISTINCT TILES
+    NTILE = 7
 
     #Force terrain generation -- avoids unexpected behavior from caching
     FORCE_MAP_GENERATION = True
     #MAP_GENERATOR = CustomMapGenerator
     GENERATE_MAP_PREVIEWS = True
-    NMAPS = 10
-    NENT = 8
 
     #NENT = 100
     # Sharing
@@ -168,7 +173,7 @@ class ForageConfigDebug(Small, ForagingGameSystems,RESDEPOSIT,Debug):
     def SPAWN(self):
         return self.SPAWN_NOTHING
 
-class ForageConfigTrain(nmmo.config.Small, ForagingGameSystems,RLlib,RESDEPOSIT,Train):
+class ForageConfigDebug(ForageConfigBase,Debug):
     '''Config objects subclass a nmmo.config.{Small, Medium, Large} template
 
     Can also specify config game systems to enable various features'''
@@ -177,33 +182,25 @@ class ForageConfigTrain(nmmo.config.Small, ForagingGameSystems,RLlib,RESDEPOSIT,
     # Meander: randomly wanders around
     # Forage: explicitly searches for food and water
     # Combat: forages and actively fights other agents
-    AGENTS    = [nmmo.Agent]
-
-    #Set a unique path for demo maps
-    PATH_MAPS = 'maps/demos'
-
-    #Force terrain generation -- avoids unexpected behavior from caching
-    FORCE_MAP_GENERATION = True
-    #MAP_GENERATOR = CustomMapGenerator
-    GENERATE_MAP_PREVIEWS = True
-    NMAPS = 10
+    NMAPS = 16
     NENT = 8
 
-    #NENT = 100
-    # Sharing
-    MIN_SHARING_RANGE = 2
-    RESOURCE_SHARING = False
+    # Training
+    NUM_ARGUMENTS = 3
+    NUM_ENVS = NENT * 8
 
-    # Map Generation
-    TERRAIN_LAVA = 0.0
-    TERRAIN_WATER = 0.20
-    TERRAIN_GRASS = 0.70
-    TERRAIN_FOREST = 0.90
-    TERRAIN_BORDER = 10
+class ForageConfigTrain(ForageConfigBase,Train):
+    '''Config objects subclass a nmmo.config.{Small, Medium, Large} template
 
-    # Override Spawn
-    def SPAWN_NOTHING(self):
-        return None,None
-    @property
-    def SPAWN(self):
-        return self.SPAWN_NOTHING
+    Can also specify config game systems to enable various features'''
+
+    # Agents will be instantiated using templates included with the baselines
+    # Meander: randomly wanders around
+    # Forage: explicitly searches for food and water
+    # Combat: forages and actively fights other agents
+    NMAPS = 64
+    NENT = 16
+    # Training
+    NUM_ARGUMENTS = 3
+    NUM_ENVS = NENT * 32
+

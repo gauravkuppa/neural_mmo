@@ -59,3 +59,4 @@ Combat  = [
         Task(combat, 10, Tier.HARD)]
 
 All = PlayerKills + Equipment + Exploration + Foraging
+MAF = Exploration
