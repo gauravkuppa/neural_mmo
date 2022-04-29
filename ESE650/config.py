@@ -131,6 +131,8 @@ class Small(RLlib, nmmo.config.Small):
     TRAIN_HORIZON = 64
     EVALUATION_HORIZON = 64
 
+    HORIZON = 256
+
 class ForageConfigBase(Small, ForagingGameSystems,RESDEPOSIT):
     '''Config objects subclass a nmmo.config.{Small, Medium, Large} template
 
@@ -174,33 +176,7 @@ class ForageConfigBase(Small, ForagingGameSystems,RESDEPOSIT):
         return self.SPAWN_NOTHING
 
 class ForageConfigDebug(ForageConfigBase,Debug):
-    '''Config objects subclass a nmmo.config.{Small, Medium, Large} template
-
-    Can also specify config game systems to enable various features'''
-
-    # Agents will be instantiated using templates included with the baselines
-    # Meander: randomly wanders around
-    # Forage: explicitly searches for food and water
-    # Combat: forages and actively fights other agents
-    NMAPS = 16
-    NENT = 8
-
-    # Training
-    NUM_ARGUMENTS = 3
-    NUM_ENVS = NENT * 8
+    pass
 
 class ForageConfigTrain(ForageConfigBase,Train):
-    '''Config objects subclass a nmmo.config.{Small, Medium, Large} template
-
-    Can also specify config game systems to enable various features'''
-
-    # Agents will be instantiated using templates included with the baselines
-    # Meander: randomly wanders around
-    # Forage: explicitly searches for food and water
-    # Combat: forages and actively fights other agents
-    NMAPS = 64
-    NENT = 16
-    # Training
-    NUM_ARGUMENTS = 3
-    NUM_ENVS = NENT * 32
-
+    pass

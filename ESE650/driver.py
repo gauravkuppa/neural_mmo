@@ -206,8 +206,8 @@ class ConfigTrain(ForageConfigTrain):
     NMAPS              = 256
     NENT               = 16
     NUM_ENVS           = NENT*32
-    NUM_MINIBATCHES    = 256
-    NUM_STEPS          = 512
+    NUM_MINIBATCHES    = 128
+    NUM_STEPS          = 128
 
     #Enable task-based
     TASKS              = tasks.MAF
@@ -250,6 +250,7 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = args.torch_deterministic
 
     # NMMO Integration
+    print("Training {}".format(args.train))
     if args.train:
         config = ConfigTrain()
     else:
