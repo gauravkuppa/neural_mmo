@@ -77,7 +77,7 @@ def parse_args():
     parser.add_argument("--target-kl", type=float, default=None,
         help="the target KL divergence threshold")
 
-    parser.add_argument("--train", type=float, default=False,
+    parser.add_argument("--train", type=bool, default=False,
                         help="the target KL divergence threshold")
     args = parser.parse_args()
     args.batch_size = int(args.num_envs * args.num_steps)
