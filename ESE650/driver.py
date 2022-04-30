@@ -253,10 +253,11 @@ if __name__ == "__main__":
     print("Training {}".format(args.train))
     if args.train:
         config = ConfigTrain()
+        envs = integrations.cleanrl_vec_envs(ConfigTrain)
     else:
         config = Config()
+        envs = integrations.cleanrl_vec_envs(Config)
 
-    envs = integrations.cleanrl_vec_envs(Config)
     envs = gym.wrappers.RecordEpisodeStatistics(envs)
 
     # Modifying default arguments
