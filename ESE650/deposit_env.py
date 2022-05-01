@@ -193,10 +193,10 @@ class ForageEnv(nmmo.Env):
 
         self.num_steps+=1
 
-        if self.config.RESOURCE_SHARING:
+        if self.config.RESOURCE_SHARING and actions!={}:
             group_dict = {}
             for entID, ent in self.realm.players.items():
-                group_dict = {entID:entID}
+                group_dict[entID] = entID
             for entID, ent in self.realm.players.items():
                 for entID2, ent2 in self.realm.players.items():
                     if group_dict[entID2] == group_dict[entID]:
@@ -223,8 +223,8 @@ class ForageEnv(nmmo.Env):
                 food_tot = 0
                 water_tot = 0
                 for ID in group:
-                    food_tot += self.realm.players.entities[ID].food
-                    water_tot += self.realm.players.entities[ID].water
+                    food_tot += self.realm.players.entities[ID].resources.food.val
+                    water_tot += self.realm.players.entities[ID].resources.water.val
                 
                 #find how much food and water left after even distribution
                 food_rem = food_tot%len(group)
@@ -242,8 +242,8 @@ class ForageEnv(nmmo.Env):
                     if water_rem > 0:
                         water_rem -= 1
                         
-                    self.realm.players.entities[ID].food = int(food_tot + ex_food)
-                    self.realm.players.entities[ID].water = int(water_tot + ex_water)
+                    self.realm.players.entities[ID].resources.food.val = int(food_tot + ex_food)
+                    self.realm.players.entities[ID].resources.water.val= int(water_tot + ex_water)
         return obs, rewards, dones, infos
 
 

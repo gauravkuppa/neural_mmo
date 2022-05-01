@@ -197,6 +197,7 @@ class Config(ForageConfigDebug):
     FORCE_MAP_GENERATION = True
 
     NUM_ARGUMENTS = 3
+    RESOURCE_SHARING = True
 
 class ConfigTrain(ForageConfigTrain):
     HIDDEN             = 64
