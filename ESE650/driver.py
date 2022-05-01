@@ -220,6 +220,8 @@ class ConfigTrain(ForageConfigTrain):
     FORCE_MAP_GENERATION = True
 
     NUM_ARGUMENTS = 3
+    RESOURCE_SHARING = True
+
 if __name__ == "__main__":
     args = parse_args()
 
