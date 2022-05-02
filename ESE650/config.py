@@ -23,7 +23,7 @@ class Train:
 
    NUM_GPUS                = 1
    NUM_WORKERS             = 36
-   NUM_CPUS                = 32
+   NUM_CPUS                = 64
    EVALUATION_NUM_WORKERS  = 2
    EVALUATION_NUM_EPISODES = 2
 
@@ -111,9 +111,10 @@ class RLlib:
 class RESDEPOSIT:
     FOOD_DEP_TEAM = .05
     WATER_DEP_TEAM = .05
-    FOOD_DEP_SELF = 0.005
-    WATER_DEP_SELF = 0.005
+    FOOD_DEP_SELF = 0.1
+    WATER_DEP_SELF = 0.1
     NMMO_MULT = 20
+    TEAM_REWARDS = True
 
 
 

@@ -198,6 +198,7 @@ class Config(ForageConfigDebug):
 
     NUM_ARGUMENTS = 3
     RESOURCE_SHARING = True
+    TEAM_REWARDS = False
 
 class ConfigTrain(ForageConfigTrain):
     HIDDEN             = 64
@@ -206,7 +207,7 @@ class ConfigTrain(ForageConfigTrain):
     #Large map pool
     NMAPS              = 256
     NENT               = 16
-    NUM_ENVS           = NENT*32
+    NUM_ENVS           = NENT*64
     NUM_MINIBATCHES    = 128
     NUM_STEPS          = 128
 
@@ -222,6 +223,7 @@ class ConfigTrain(ForageConfigTrain):
 
     NUM_ARGUMENTS = 3
     RESOURCE_SHARING = True
+    TEAM_REWARDS = False
 
 if __name__ == "__main__":
     args = parse_args()

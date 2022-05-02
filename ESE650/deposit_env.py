@@ -177,8 +177,16 @@ class ForageEnv(nmmo.Env):
         curr_food_capacity = self.realm.map.depoTile.food_capacity
 
         # Team Reward added to each agent
-        reward = self.config.NMMO_MULT*reward + (self.config.FOOD_DEP_TEAM * (curr_food_capacity-self.init_food_capacity) +\
-            self.config.WATER_DEP_TEAM * (curr_water_capacity-self.init_water_capacity))
+        reward = self.config.NMMO_MULT * reward + (
+                    self.config.FOOD_DEP_TEAM * (curr_food_capacity - self.init_food_capacity) + \
+                    self.config.WATER_DEP_TEAM * (curr_water_capacity - self.init_water_capacity))
+
+        # Adding individual reward
+        if not self.config.TEAM_REWARDS:
+            if player.pos[0]==self.realm.map.depoTile.pos[0] and player.pos[1]==self.realm.map.depoTile.pos[1]:
+                reward += (self.config.FOOD_DEP_SELF * (curr_food_capacity-self.init_food_capacity) +\
+                    self.config.WATER_DEP_SELF * (curr_water_capacity-self.init_water_capacity))
+
 
         return reward, info
 
