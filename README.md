@@ -1,11 +1,11 @@
 # neural_mmo
 
-conda create -n neural_mmo python=3.9
+1. Follow instructions in ESE650/readme.MD to set up the docker container to train the code
 
-conda activate neural_mmo
 
-pip install nmmo[rllib]
+Project Contributions:
 
-git clone https://github.com/gauravkuppa/neural_mmo.git
-
-cd environment && pip install -e .[all]
+Harsh Goel: Environment modifications(setup,generation, resource sharing and agent observations) 
+,coding up and training the models, result compilations, full-report writing 
+Gaurav Kuppa: Environment setup, proofreading
+Aditya Pratap Singh: Environment resource sharing Debugging, proofreading and model illustration
