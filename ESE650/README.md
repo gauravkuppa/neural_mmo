@@ -8,4 +8,6 @@
 # 6. go to environment in /home/code  where neural_mmo is cloned and pip install -e . to install nmmo environment
 # 7. install wandb openskill and any other necessary packages to run the code in ESE650/main.py 
 # 8. Ensure pettingZoo=1.15.0, gym =0.23.1, supersuit=3.3.5, torch=1.11.0 and ray=1.5.2 for training
-# 9. 
+# 9. Run training  by setting PYTHONPATH=[Path to neuralmmo folder] python3 driver.py --train True
+# 9. Run training  by setting PYTHONPATH=[Path to neuralmmo folder] python3 driver.py --train True
+# 9. Run training  by setting PYTHONPATH=[Path to neuralmmo folder] python3 driver.py --train True
