@@ -1,7 +1,7 @@
 fire==0.4.0
 autobahn==19.3.3
 Twisted==19.2.0
-gym==0.21.0
+gym==0.23.0
 vec-noise==1.1.4
 bokeh==2.2.3
 imageio==2.8.0
@@ -13,4 +13,5 @@ numpy==1.21.1
 trueskill==0.4.5
 wandb
 openskill
-pettingzoo==1.13.1
+supersuit==3.3.5
+pettingzoo==1.15.0

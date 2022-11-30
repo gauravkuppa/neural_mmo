@@ -11,8 +11,17 @@ extra = {
         'sphinx-rtd-theme==0.5.1',
         'sphinxcontrib-youtube==1.0.1',
         ],
+    'cleanrl': [
+        'wandb==0.12.9',
+        'supersuit==3.3.5',
+        'pettingzoo==1.15.0',
+        'gym==0.23.0',
+        'tensorboard',
+        'torch',
+    ],
     'rllib': [
-        'ray[all]',#==1.10.0',
+        'ray[all]',  # ==1.10.0',
+        'ray[all]==1.10.0',
         'grpcio==1.44.0',
         'six==1.15.0',
         'dm-tree==0.1.6',
@@ -20,8 +29,10 @@ extra = {
         'pandas==1.3.4',
         'wandb==0.12.9',
         'openskill==0.2.0-alpha.0',
+        'pettingzoo==1.14.0',
+        'gym==0.21.0',
         'torch',
-        ],
+    ],
     }
 
 extra['all'] = list(set(chain.from_iterable(extra.values())))
@@ -44,8 +55,8 @@ setup(
         'vec-noise==1.1.4',
         'imageio==2.8.0',
         'tqdm==4.61.1',
-        'pettingzoo==1.14.0',
-        'gym==0.21.0',
+        'lz4==4.0.0',
+        'pettingzoo',
     ],
     extras_require=extra,
     python_requires=">=3.7",

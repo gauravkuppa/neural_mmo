@@ -4,7 +4,6 @@ import numpy as np
 from signal import signal, SIGINT
 import sys, os, json, pickle, time
 import threading
-import ray
 
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
@@ -77,13 +76,11 @@ class GodswordServerProtocol(WebSocketServerProtocol):
         packet['pos']        = data['pos']
         packet['wilderness'] = data['wilderness']
 
-        config = data['config']
-
         print('Is Connected? : {}'.format(self.isConnected))
         if not self.sent_environment:
             packet['map']    = data['environment']
-            packet['border'] = config.TERRAIN_BORDER
-            packet['size']   = config.TERRAIN_SIZE
+            packet['border'] = data['border']
+            packet['size']   = data['size']
 
         if 'overlay' in data:
            packet['overlay'] = data['overlay']
@@ -109,7 +106,7 @@ class WSServerFactory(WebSocketServerFactory):
         uptime = np.round(self.tickRate*self.tick, 1)
         delta = time.time() - self.time
         print('Wall Clock: ', str(delta)[:5], 'Uptime: ', uptime, ', Tick: ', self.tick)
-        delta = self.tickRate - delta    
+        delta = self.tickRate - delta
         if delta > 0:
            time.sleep(delta)
         self.time = time.time()
@@ -135,7 +132,7 @@ class Application:
 
       port = 8080
       self.factory          = WSServerFactory(u'ws://localhost:{}'.format(port), realm)
-      self.factory.protocol = GodswordServerProtocol 
+      self.factory.protocol = GodswordServerProtocol
       resource              = WebSocketResource(self.factory)
 
       root = File(".")

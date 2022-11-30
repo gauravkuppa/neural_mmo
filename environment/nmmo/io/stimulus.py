@@ -213,6 +213,38 @@ class Serialized(metaclass=utils.IterableNameComparable):
             self.max = config.TERRAIN_SIZE - 1
             self.scale = 0.15
 
+   class DepoTile(metaclass=utils.IterableNameComparable):
+      @staticmethod
+      def N(config):
+         return 1
+
+      class FoodVal(Continuous):
+         def init(self, config):
+            self.max = 2 ** 20
+            self.val = 0
+            self.scale = 1.0
+
+      class WaterVal(Continuous):
+         def init(self, config):
+            self.max = 2 ** 20
+            self.val = 0
+            self.scale = 1.0
+
+      class Index(Discrete):
+         def init(self, config):
+            self.max = config.NTILE
+            self.scale = 0.15
+
+      class R(Discrete):
+         def init(self, config):
+            self.max = config.TERRAIN_SIZE - 1
+            self.scale = 0.15
+
+      class C(Discrete):
+         def init(self, config):
+            self.max = config.TERRAIN_SIZE - 1
+            self.scale = 0.15
+
 for objName, obj in Serialized:
    for idx, (attrName, attr) in enumerate(obj):
       attr.index = idx 

@@ -8,7 +8,7 @@ from torch import nn
 
 import nmmo
 
-from neural_mmo.ESE650.networks import subnets
+from . import subnets
 
 
 class MixedEmbedding(nn.Module):
@@ -31,7 +31,6 @@ class MixedEmbedding(nn.Module):
 class Input(nn.Module):
     def __init__(self, config, embeddings, attributes):
         '''Network responsible for processing observations
-
         Args:
            config     : A configuration object
            embeddings : An attribute embedding module
@@ -41,7 +40,7 @@ class Input(nn.Module):
 
         self.embeddings = nn.ModuleDict()
         self.attributes = nn.ModuleDict()
-        self.config = config
+
         for _, entity in nmmo.Serialized:
             continuous = len([e for e in entity if e[1].CONTINUOUS])
             discrete = len([e for e in entity if e[1].DISCRETE])
@@ -51,19 +50,14 @@ class Input(nn.Module):
                 continuous=continuous, discrete=4096, config=config)
 
         # TODO: implement obs scaling in a less hackey place
-        self.tileWeight = torch.Tensor([1.0, 0.0, 0.02, 0.02])
-        self.entWeight = torch.Tensor([1.0, 0.0, 0.0, 0.05, 0.00, 0.02, 0.02, 0.1, 0.01, 0.1, 0.1, 0.1, 0.3])
-
-        if torch.cuda.is_available():
-            self.tileWeight = self.tileWeight.cuda()
-            self.entWeight = self.entWeight.cuda()
+        self.register_buffer('tileWeight', torch.Tensor([1.0, 0.0, 0.02, 0.02]))
+        self.register_buffer('entWeight',
+                             torch.Tensor([1.0, 0.0, 0.0, 0.05, 0.00, 0.02, 0.02, 0.1, 0.01, 0.1, 0.1, 0.1, 0.3]))
 
     def forward(self, inp):
         '''Produces tensor representations from an IO object
-
         Args:
            inp: An IO object specifying observations
-
 
         Returns:
            entityLookup      : A fixed size representation of each entity
@@ -71,16 +65,10 @@ class Input(nn.Module):
         # Pack entities of each attribute set
         entityLookup = {}
 
-        #device = inp['Tile']['Continuous'].device
-        device  = self.config.DEVICE
-        inp['Tile']['Continuous'] = torch.tensor(inp['Tile']['Continuous'],dtype=torch.float32).to(device)
-        inp['Entity']['Continuous'] = torch.tensor(inp['Entity']['Continuous'], dtype=torch.float32).to(device)
-        inp['Tile']['Discrete'] = torch.tensor(inp['Tile']['Discrete'], dtype=torch.float32).to(device)
-        inp['Entity']['Discrete'] = torch.tensor(inp['Entity']['Discrete'], dtype=torch.float32).to(device)
-        inp['Tile']['Continuous'] *= self.tileWeight.to(device)
-        inp['Entity']['Continuous'] *= self.entWeight.to(device)
+        inp['Tile']['Continuous'] *= self.tileWeight
+        inp['Entity']['Continuous'] *= self.entWeight
 
-        entityLookup['N'] = torch.tensor(inp['Entity'].pop('N'),dtype=torch.int32)
+        entityLookup['N'] = inp['Entity'].pop('N')
         for name, entities in inp.items():
             # Construct: Batch, ents, nattrs, hidden
             embeddings = self.embeddings[name](entities)
@@ -96,7 +84,6 @@ class Input(nn.Module):
 class Output(nn.Module):
     def __init__(self, config):
         '''Network responsible for selecting actions
-
         Args:
            config: A Config object
         '''

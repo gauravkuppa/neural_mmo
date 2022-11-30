@@ -13,16 +13,17 @@ class Map:
    '''
    def __init__(self, config, realm):
       self.config = config
+      self._repr = None
 
-      sz          = config.TERRAIN_SIZE
-      self.tiles  = np.zeros((sz, sz), dtype=object)
+      sz = config.TERRAIN_SIZE
+      self.tiles = np.zeros((sz, sz), dtype=object)
 
       for r in range(sz):
-         for c in range(sz):
-            self.tiles[r, c] = core.Tile(config, realm, r, c)
+          for c in range(sz):
+              self.tiles[r, c] = core.Tile(config, realm, r, c)
 
       if config.game_system_enabled('Deposit'):
-         self.depoTile = None
+          self.depoTile = None
 
    @property
    def packet(self):
@@ -34,8 +35,11 @@ class Map:
 
    @property
    def repr(self):
-      '''Flat matrix of tile material indices'''
-      return [[t.mat.index for t in row] for row in self.tiles]
+       '''Flat matrix of tile material indices'''
+       # if not self._repr:
+       self._repr = [[t.mat.index for t in row] for row in self.tiles]
+
+       return self._repr
 
    def reset(self, realm, idx):
       '''Reuse the current tile objects to load a new map'''

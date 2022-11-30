@@ -2,15 +2,81 @@ from pdb import set_trace as T
 import numpy as np
 
 import functools
+from collections import defaultdict
 
 import gym
 from pettingzoo import ParallelEnv
 
+import pickle
+import lz4.block
+
 import nmmo
-from nmmo import entity, core
+from nmmo import entity, core,emulation
 from nmmo.core import terrain
 from nmmo.lib import log
 from nmmo.infrastructure import DataType
+
+class Replay:
+    def __init__(self, config):
+        self.packets = []
+        self.map     = None
+
+        if config is not None:
+            self.path = config.SAVE_REPLAY + '.replay'
+
+        self._i = 0
+
+    def update(self, packet):
+        data = {}
+        for key, val in packet.items():
+            if key == 'environment':
+                self.map = val
+                continue
+            if key == 'config':
+                continue
+
+            data[key] = val
+
+        self.packets.append(data)
+
+    def save(self):
+        data = {
+            'map': self.map,
+            'packets': self.packets}
+
+        data = lz4.block.compress(pickle.dumps(data))
+        with open(self.path, 'wb') as out:
+            out.write(data)
+
+    @classmethod
+    def load(cls, path):
+        with open(path, 'rb') as fp:
+            data = fp.read()
+
+        data = pickle.loads(lz4.block.decompress(data))
+        replay = Replay(None)
+        replay.map = data['map']
+        replay.packets = data['packets']
+        return replay
+
+    def render(self):
+        from nmmo.websocket import Application
+        client = Application(realm=None)
+        for packet in self:
+            client.update(packet)
+
+    def __iter__(self):
+        self._i = 0
+        return self
+
+    def __next__(self):
+        if self._i >= len(self.packets):
+            raise StopIteration
+        packet = self.packets[self._i]
+        packet['environment'] = self.map
+        self._i += 1
+        return packet
+
 
 class Env(ParallelEnv):
    '''Environment wrapper for Neural MMO using the Parallel PettingZoo API
@@ -53,13 +119,25 @@ class Env(ParallelEnv):
 
       self.has_reset  = False
 
+      # Populate dummy ob
+      self.dummy_ob = None
+      self.observation_space(0)
+
+      if self.config.SAVE_REPLAY:
+          self.replay = Replay(config)
+
+      if config.EMULATE_CONST_NENT:
+          self.possible_agents = [i for i in range(1, config.NENT + 1)]
+
+       # Flat index actions
+      if config.EMULATE_FLAT_ATN:
+          self.flat_actions = emulation.pack_atn_space(config)
+
    @functools.lru_cache(maxsize=None)
    def observation_space(self, agent: int):
       '''Neural MMO Observation Space
-
       Args:
          agent: Agent ID
-
       Returns:
          observation: gym.spaces object contained the structured observation
          for the specified agent. Each visible object is represented by
@@ -69,52 +147,103 @@ class Env(ParallelEnv):
 
       observation = {}
       for entity in sorted(nmmo.Serialized.values()):
-         rows       = entity.N(self.config)
-         continuous = 0
-         discrete   = 0
+          rows = entity.N(self.config)
+          continuous = 0
+          discrete = 0
 
-         for _, attr in entity:
-            if attr.DISCRETE:
-               discrete += 1
-            if attr.CONTINUOUS:
-               continuous += 1
+          for _, attr in entity:
+              if attr.DISCRETE:
+                  discrete += 1
+              if attr.CONTINUOUS:
+                  continuous += 1
 
-         name = entity.__name__
-         observation[name] = {
-               'Continuous': gym.spaces.Box(low=-2**20, high=2**20, shape=(rows, continuous), dtype=DataType.CONTINUOUS),
-               'Discrete'  : gym.spaces.Box(low=0, high=4096, shape=(rows, discrete), dtype=DataType.DISCRETE)}
+          name = entity.__name__
+          observation[name] = {
+              'Continuous': gym.spaces.Box(
+                  low=-2 ** 20, high=2 ** 20,
+                  shape=(rows, continuous),
+                  dtype=DataType.CONTINUOUS),
+              'Discrete': gym.spaces.Box(
+                  low=0, high=4096,
+                  shape=(rows, discrete),
+                  dtype=DataType.DISCRETE)}
 
-         if name == 'Entity':
-            observation['Entity']['N'] = gym.spaces.Box(low=0, high=self.config.N_AGENT_OBS, shape=(1,), dtype=DataType.DISCRETE)
+          if name == 'Entity':
+              observation['Entity']['N'] = gym.spaces.Box(
+                  low=0, high=self.config.N_AGENT_OBS,
+                  shape=(1,), dtype=DataType.DISCRETE)
+          if name == 'Tile':
+              observation['Tile']['N'] = gym.spaces.Box(
+                  low=0, high=self.config.WINDOW ** 2,
+                  shape=(1,), dtype=DataType.DISCRETE)
+          if name == 'DepoTile':
+              observation['DepoTile']['N'] = gym.spaces.Box(
+                  low=0, high=1,
+                  shape=(1,), dtype=DataType.DISCRETE)
 
-         observation[name] = gym.spaces.Dict(observation[name])
+          observation[name] = gym.spaces.Dict(observation[name])
 
-      return gym.spaces.Dict(observation)
+
+      # if self.config.Deposit:
+      #     observation['DepoTile'] = {
+      #         'Continuous': gym.spaces.Box(
+      #             low=-2 ** 20, high=2 ** 20,
+      #             shape=(1, 1),
+      #             dtype=DataType.CONTINUOUS),
+      #         'Discrete': gym.spaces.Box(
+      #             low=0, high=4096,
+      #             shape=(1, 2),
+      #             dtype=DataType.DISCRETE),
+      #         'N': gym.spaces.Box(
+      #             low=0, high=1,
+      #             shape=(1,),
+      #             dtype=DataType.DISCRETE)
+      #     }
+      #     observation['DepoTile'] = gym.spaces.Dict(observation['DepoTile'])
+      observation = gym.spaces.Dict(observation)
+
+
+      if not self.dummy_ob:
+          self.dummy_ob = observation.sample()
+          for ent_key, ent_val in self.dummy_ob.items():
+              for attr_key, attr_val in ent_val.items():
+                  self.dummy_ob[ent_key][attr_key] *= 0
+
+      if not self.config.EMULATE_FLAT_OBS:
+          return observation
+
+      return emulation.pack_obs_space(observation)
 
    @functools.lru_cache(maxsize=None)
    def action_space(self, agent):
-      '''Neural MMO Action Space
+       '''Neural MMO Action Space
+       Args:
+          agent: Agent ID
+       Returns:
+          actions: gym.spaces object contained the structured actions
+          for the specified agent. Each action is parameterized by a list
+          of discrete-valued arguments. These consist of both fixed, k-way
+          choices (such as movement direction) and selections from the
+          observation space (such as targeting)'''
 
-      Args:
-         agent: Agent ID
+       if self.config.EMULATE_FLAT_ATN:
+           lens = []
+           for atn in nmmo.Action.edges:
+               for arg in atn.edges:
+                   lens.append(arg.N(self.config))
+           return gym.spaces.MultiDiscrete(lens)
+           # return gym.spaces.Discrete(len(self.flat_actions))
 
-      Returns:
-         actions: gym.spaces object contained the structured actions
-         for the specified agent. Each action is parameterized by a list
-         of discrete-valued arguments. These consist of both fixed, k-way
-         choices (such as movement direction) and selections from the
-         observation space (such as targeting)'''
+       actions = {}
+       for atn in sorted(nmmo.Action.edges):
+           actions[atn] = {}
+           for arg in sorted(atn.edges):
+               n = arg.N(self.config)
+               actions[atn][arg] = gym.spaces.Discrete(n)
 
-      actions = {}
-      for atn in sorted(nmmo.Action.edges):
-         actions[atn] = {}
-         for arg in sorted(atn.edges):
-            n                       = arg.N(self.config)
-            actions[atn][arg] = gym.spaces.Discrete(n)
+           actions[atn] = gym.spaces.Dict(actions[atn])
 
-         actions[atn] = gym.spaces.Dict(actions[atn])
-
-      return gym.spaces.Dict(actions)
+       return gym.spaces.Dict(actions)
  
    ############################################################################
    ### Core API
@@ -143,6 +272,9 @@ class Env(ParallelEnv):
       Returns:
          observations, as documented by step()
       '''
+      if self.has_reset:
+          print('Resetting env')
+
       self.has_reset = True
 
       self.actions = {}
@@ -258,61 +390,113 @@ class Env(ParallelEnv):
             Provided for conformity with PettingZoo
       '''
       assert self.has_reset, 'step before reset'
-      # print(actions.keys())
-      # print(len(self.realm.players.entities))
-      #Preprocess actions for neural models
+
+      if self.config.RENDER or self.config.SAVE_REPLAY:
+          packet = {
+              'config': self.config,
+              'pos': self.overlayPos,
+              'wilderness': 0
+          }
+
+          packet = {**self.realm.packet(), **packet}
+
+          if self.overlay is not None:
+              print('Overlay data: ', len(self.overlay))
+              packet['overlay'] = self.overlay
+              self.overlay = None
+
+          self.packet = packet
+
+          if self.config.SAVE_REPLAY:
+              self.replay.update(packet)
+
+      # Preprocess actions for neural models
       for entID in list(actions.keys()):
-         ent = self.realm.players[entID]
-         if not ent.alive:
-            continue
+          # TODO: Should this silently fail? Warning level options?
+          if entID not in self.realm.players:
+              continue
 
-         self.actions[entID] = {}
-         for atn, args in actions[entID].items():
-            self.actions[entID][atn] = {}
-            for arg, val in args.items():
-               if len(arg.edges) > 0:
-                  self.actions[entID][atn][arg] = arg.edges[val]
-               elif val < len(ent.targets):
-                  targ                     = ent.targets[val]
-                  self.actions[entID][atn][arg] = self.realm.entity(targ)
-               else: #Need to fix -inf in classifier before removing this
-                  self.actions[entID][atn][arg] = ent
+          ent = self.realm.players[entID]
 
-      #Step: Realm, Observations, Logs
-      self.dead    = self.realm.step(self.actions)
+          if not ent.alive:
+              continue
+
+          if self.config.EMULATE_FLAT_ATN:
+              ent_action = {}
+              idx = 0
+              for atn in nmmo.Action.edges:
+                  ent_action[atn] = {}
+                  for arg in atn.edges:
+                      ent_action[atn][arg] = actions[entID][idx]
+                      idx += 1
+              actions[entID] = ent_action
+              # assert actions[entID] in self.flat_actions, f'Invalid action {actions[entID]}'
+              # actions[entID] = self.flat_actions[actions[entID]]
+
+          self.actions[entID] = {}
+          for atn, args in actions[entID].items():
+              self.actions[entID][atn] = {}
+              args.items()
+              for arg, val in args.items():
+                  if len(arg.edges) > 0:
+                      self.actions[entID][atn][arg] = arg.edges[val]
+                  elif val < len(ent.targets):
+                      targ = ent.targets[val]
+                      self.actions[entID][atn][arg] = self.realm.entity(targ)
+                  else:  # Need to fix -inf in classifier before removing this
+                      self.actions[entID][atn][arg] = ent
+
+      # Step: Realm, Observations, Logs
+      self.dead = self.realm.step(self.actions)
       self.actions = {}
-      self.obs     = {}
-      infos        = {}
+      self.obs = {}
+      infos = {}
 
       obs, rewards, dones, self.raw = {}, {}, {}, {}
       for entID, ent in self.realm.players.items():
-         ob = self.realm.dataframe.get(ent)
-         self.obs[entID] = ob
-         if ent.agent.scripted:
-            atns = ent.agent(ob)
-            if nmmo.action.Attack in atns:
-               atn  = atns[nmmo.action.Attack]
-               targ = atn[nmmo.action.Target]
-               atn[nmmo.action.Target] = self.realm.entity(targ)
-            self.actions[entID] = atns
-         else:
-            obs[entID]     = ob
-            self.dummy_ob  = ob
-
-            rewards[entID], infos[entID] = self.reward(ent)
-            dones[entID]   = False
+          ob = self.realm.dataframe.get(ent)
+          self.obs[entID] = ob
+          if ent.agent.scripted:
+              atns = ent.agent(ob)
+              if nmmo.action.Attack in atns:
+                  atn = atns[nmmo.action.Attack]
+                  targ = atn[nmmo.action.Target]
+                  atn[nmmo.action.Target] = self.realm.entity(targ)
+              self.actions[entID] = atns
+          else:
+              obs[entID] = ob
+              rewards[entID], infos[entID] = self.reward(ent)
+              dones[entID] = False
 
       for entID, ent in self.dead.items():
-         self.log(ent)
+          self.log(ent)
 
       for entID, ent in self.dead.items():
-         if ent.agent.scripted:
-            continue
-         rewards[ent.entID], infos[ent.entID] = self.reward(ent)
-         dones[ent.entID]   = True
-         obs[ent.entID]     = self.dummy_ob
+          if ent.agent.scripted:
+              continue
+          rewards[ent.entID], infos[ent.entID] = self.reward(ent)
 
-      #Pettingzoo API
+          dones[ent.entID] = False  # TODO: Is this correct behavior?
+          if not self.config.EMULATE_CONST_HORIZON:
+              dones[ent.entID] = True
+
+          obs[ent.entID] = self.dummy_ob
+
+      if self.config.EMULATE_CONST_NENT:
+          emulation.pad_const_nent(self.config, self.dummy_ob, obs, rewards, dones, infos)
+
+      if self.config.EMULATE_FLAT_OBS:
+          obs = nmmo.emulation.pack_obs(obs)
+
+      if self.config.EMULATE_CONST_HORIZON:
+          assert self.realm.tick <= self.config.HORIZON
+          if self.realm.tick == self.config.HORIZON:
+              emulation.const_horizon(dones)
+
+      if not len(self.realm.players.items()):
+          emulation.const_horizon(dones)
+
+      # Pettingzoo API
       self.agents = list(self.realm.players.keys())
 
       self.obs = obs
@@ -383,8 +567,12 @@ class Env(ParallelEnv):
          Log datastructure
       '''
 
+
       for entID, ent in self.realm.players.entities.items():
          self.log(ent)
+
+      if self.config.SAVE_REPLAY:
+         self.replay.save()
 
       return self.quill.packet
 
@@ -424,25 +612,12 @@ class Env(ParallelEnv):
    ### Client data
    def render(self, mode='human') -> None:
       '''Data packet used by the renderer
-
       Returns:
          packet: A packet of data for the client
       '''
 
       assert self.has_reset, 'render before reset'
-
-      packet = {
-            'config': self.config,
-            'pos': self.overlayPos,
-            'wilderness': 0
-            }
-
-      packet = {**self.realm.packet(), **packet}
-
-      if self.overlay is not None:
-         print('Overlay data: ', len(self.overlay))
-         packet['overlay'] = self.overlay
-         self.overlay      = None
+      packet = self.packet
 
       if not self.client:
          from nmmo.websocket import Application

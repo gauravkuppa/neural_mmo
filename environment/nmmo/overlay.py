@@ -9,7 +9,6 @@ from nmmo.systems import combat
 class OverlayRegistry:
    def __init__(self, config, realm):
       '''Manager class for overlays
-
       Args:
           config: A Config object
           realm: An environment
@@ -25,20 +24,20 @@ class OverlayRegistry:
               'wilderness': Wilderness}
 
 
-   def init(self):
+   def init(self, *args):
+      self.initialized = True
       for cmd, overlay in self.overlays.items():
-         self.overlays[cmd] = overlay(self.config, self.realm)
+         self.overlays[cmd] = overlay(self.config, self.realm, *args)
+      return self
 
    def step(self, obs, pos, cmd):
       '''Per-tick overlay updates
-
       Args:
           obs: Observation returned by the environment
           pos: Client camera focus position
           cmd: User command returned by the client
       '''
       if not self.initialized:
-          self.initialized = True
           self.init()
 
       self.realm.overlayPos = pos
@@ -50,7 +49,6 @@ class OverlayRegistry:
 
 class Overlay:
    '''Define a overlay for visualization in the client
-
    Overlays are color images of the same size as the game map.
    They are rendered over the environment with transparency and
    can be used to gain insight about agent behaviors.'''
@@ -68,7 +66,6 @@ class Overlay:
 
    def update(self, obs):
        '''Compute per-tick updates to this overlay. Override per overlay.
-
        Args:
            obs: Observation returned by the environment
        '''

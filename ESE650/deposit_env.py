@@ -10,7 +10,7 @@ import numpy as np
 
 import neural_mmo.baselines.demos.minimal as minimal
 from nmmo import Task
-from ray import rllib
+#from ray import rllib
 from collections import namedtuple
 from nmmo.lib import material
 from neural_mmo.ESE650.networks.policy import Simple
@@ -112,8 +112,21 @@ class ForageEnv(nmmo.Env):
         self.init_food_capacity = None
 
     def reset(self, idx=None, step=True):
+        depoTile = self.realm.map.depoTile
+        if depoTile is not None:
+            self.realm.dataframe.remove(nmmo.Serialized.DepoTile, depoTile.serial,
+                                  (depoTile.r.val, depoTile.c.val))
         super(ForageEnv, self).reset(idx,step=False)
         self.SPAWN_DEPO_PLAYERS()
+        depoTile = self.realm.map.depoTile
+        self.depoTiler = nmmo.Serialized.DepoTile.R(self.realm.dataframe, depoTile.serial, depoTile.r.val)
+        self.depoTilec = nmmo.Serialized.DepoTile.C(self.realm.dataframe, depoTile.serial, depoTile.c.val)
+        self.depoTilefood = nmmo.Serialized.DepoTile.FoodVal(self.realm.dataframe, depoTile.serial)
+        self.depoTilewater = nmmo.Serialized.DepoTile.WaterVal(self.realm.dataframe, depoTile.serial, 0)
+        self.depoTileindex = nmmo.Serialized.DepoTile.Index(self.realm.dataframe, depoTile.serial, 0)
+        self.realm.dataframe.init(nmmo.Serialized.DepoTile, depoTile.serial,
+                            (depoTile.r.val, depoTile.c.val))
+
         self.num_steps = 0
         self.init_water_capacity = self.realm.map.depoTile.water_capacity
         self.init_food_capacity = self.realm.map.depoTile.food_capacity
@@ -164,8 +177,16 @@ class ForageEnv(nmmo.Env):
         curr_food_capacity = self.realm.map.depoTile.food_capacity
 
         # Team Reward added to each agent
-        reward += (RESDEPOSIT.FOOD * (curr_food_capacity-self.init_food_capacity) +\
-            RESDEPOSIT.WATER * (curr_water_capacity-self.init_water_capacity))
+        reward = self.config.NMMO_MULT * reward + (
+                    self.config.FOOD_DEP_TEAM * (curr_food_capacity - self.init_food_capacity) + \
+                    self.config.WATER_DEP_TEAM * (curr_water_capacity - self.init_water_capacity))
+
+        # Adding individual reward
+        if not self.config.TEAM_REWARDS:
+            if player.pos[0]==self.realm.map.depoTile.pos[0] and player.pos[1]==self.realm.map.depoTile.pos[1]:
+                reward += (self.config.FOOD_DEP_SELF * (curr_food_capacity-self.init_food_capacity) +\
+                    self.config.WATER_DEP_SELF * (curr_water_capacity-self.init_water_capacity))
+
 
         return reward, info
 
@@ -173,11 +194,17 @@ class ForageEnv(nmmo.Env):
     # Sharing Resources amongst agents in the neighbourhood
     def step(self,actions):
         obs, rewards, dones, infos = super(ForageEnv, self).step(actions)
+        self.init_water_capacity = np.copy(self.realm.map.depoTile.water_capacity)
+        self.init_food_capacity = np.copy(self.realm.map.depoTile.food_capacity)
+        self.depoTilefood.update(self.realm.map.depoTile.food_capacity)
+        self.depoTilewater.update(self.realm.map.depoTile.water_capacity)
+
         self.num_steps+=1
-        if self.config.RESOURCE_SHARING:
+
+        if self.config.RESOURCE_SHARING and actions!={}:
             group_dict = {}
             for entID, ent in self.realm.players.items():
-                group_dict = {entID:entID}
+                group_dict[entID] = entID
             for entID, ent in self.realm.players.items():
                 for entID2, ent2 in self.realm.players.items():
                     if group_dict[entID2] == group_dict[entID]:
@@ -204,13 +231,27 @@ class ForageEnv(nmmo.Env):
                 food_tot = 0
                 water_tot = 0
                 for ID in group:
-                    food_tot += self.realm.players.entities[ID].food
-                    water_tot += self.realm.players.entities[ID].water
-                food_tot/=len(group)
-                water_tot/=len(group)
+                    food_tot += self.realm.players.entities[ID].resources.food.val
+                    water_tot += self.realm.players.entities[ID].resources.water.val
+                
+                #find how much food and water left after even distribution
+                food_rem = food_tot%len(group)
+                water_rem = water_tot%len(group)
+
+                #find how much food and water can be evenly distributed
+                food_tot = np.floor(food_tot/len(group))
+                water_tot = np.floor(water_tot/len(group))
+
                 for ID in group:
-                    self.realm.players.entities[ID].food = food_tot
-                    self.realm.players.entities[ID].water = water_tot
+                    ex_food = int(food_rem>0)
+                    ex_water = int(water_rem>0)
+                    if food_rem > 0:
+                        food_rem -= 1
+                    if water_rem > 0:
+                        water_rem -= 1
+                        
+                    self.realm.players.entities[ID].resources.food.val = int(food_tot + ex_food)
+                    self.realm.players.entities[ID].resources.water.val= int(water_tot + ex_water)
         return obs, rewards, dones, infos
 
 
@@ -224,8 +265,8 @@ def network_tester(env, config, render=False, horizon=float('inf')):
 
     t = 0
     while True:
-        if render:
-            env.render()
+        # if render:
+        #     env.render()
 
         # Scripted API computes actions
         obs, rewards, dones, infos = env.step(actions={})
